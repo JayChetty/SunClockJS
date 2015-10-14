@@ -33,6 +33,11 @@ var clockFactory = function(options){
       ctx.arc(this.center.x,this.center.y,this.radius,0, 2*Math.PI);
       ctx.stroke();          
     },
+    drawLineForTime:function(hours,minutes){
+      minutesInDay = 24 * 60
+      timeInMinutes = (hours * 60) + minutes
+      this.drawLineForFraction( timeInMinutes / minutesInDay)
+    },
     drawLineForFraction:function(fraction){
       ctx.beginPath();
       ctx.moveTo(this.center.x,this.center.y);
