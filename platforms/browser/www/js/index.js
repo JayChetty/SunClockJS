@@ -27,17 +27,41 @@ var clockFactory = function(options){
     render: function(){
       this.drawOutline();
     },
+    drawSweep: function(startTime, endTime, color){
+      ctx.beginPath();
+      ctx.fillStyle = "rgba(10, 255, 99, 0.2)";
+      ctx.moveTo(this.center.x,this.center.y);
+      ctx.arc( 
+        this.center.x,
+        this.center.y,
+        this.radius, 
+        this.angleForTime(startTime), 
+        this.angleForTime(endTime)
+      );
+      ctx.moveTo(this.center.x,this.center.y);
+      ctx.fill();
+    },
     drawOutline: function(){     
       ctx.beginPath();
       ctx.arc(this.center.x,this.center.y,this.radius,0, 2*Math.PI);
       ctx.stroke();          
     },
-    drawLineForTime:function(hours,minutes){
-      minutesInDay = 24 * 60
-      timeInMinutes = (hours * 60) + minutes
-      this.drawLineForFraction( timeInMinutes / minutesInDay)
+    fractionOfDay:function(time){
+      var minutesInDay = 24 * 60;
+      var timeInMinutes = (time.getHours() * 60) + time.getMinutes();
+      return(timeInMinutes / minutesInDay);
+    },
+    angleForTime:function(time){
+      return this.angleForFraction( this.fractionOfDay(time) );
+    },
+    angleForFraction:function(fraction){
+      return( Math.PI*2 * fraction - Math.PI/2 );
+    },
+    drawLineForTime:function(time){
+      this.drawLineForFraction( this.fractionOfDay(time) );
     },
     drawLineForFraction:function(fraction){
+      console.log("draw line for fraction", fraction)
       ctx.beginPath();
       ctx.moveTo(this.center.x,this.center.y);
       var endPoint = this.pointOnOutline(fraction);
@@ -46,8 +70,8 @@ var clockFactory = function(options){
       ctx.stroke();
     },
     pointOnOutline:function(fraction){
-      var angle = Math.PI*2 * fraction - Math.PI/2
-      var unadjustedCenterPoint = this.polarToCartesian(this.radius, angle)
+      var angle = this.angleForFraction(fraction);
+      var unadjustedCenterPoint = this.polarToCartesian(this.radius, angle);
       return {
         x: unadjustedCenterPoint.x + this.center.x,
         y: unadjustedCenterPoint.y + this.center.y
@@ -101,10 +125,12 @@ var app = {
     });
     clock.drawOutline();
     var now = new Date()
-    clock.drawLineForTime(now.getHours(), now.getMinutes())
+    clock.drawLineForTime(now)
+    //doing for london just now get the proper coordinates
     var sunTimes = SunCalc.getTimes(now, 51.5, -0.1);
-    clock.drawLineForTime(sunTimes.sunrise.getHours(), sunTimes.sunrise.getMinutes())
-    clock.drawLineForTime(sunTimes.sunset.getHours(), sunTimes.sunset.getMinutes())
+    clock.drawLineForTime(sunTimes.sunrise)
+    clock.drawLineForTime(sunTimes.sunset)
+    clock.drawSweep(sunTimes.sunrise, sunTimes.sunset)
     window.clock  = clock
   }
 };
