@@ -26,7 +26,6 @@ var clockFactory = function(options){
     center: options.center,
     render: function(){
       this.drawOutline();
-      this.drawLineForFraction(0.5);
     },
     drawOutline: function(){     
       ctx.beginPath();
@@ -100,7 +99,12 @@ var app = {
       canvas: document.getElementById("canvas") ,
       radius:50
     });
-    clock.render()
+    clock.drawOutline();
+    var now = new Date()
+    clock.drawLineForTime(now.getHours(), now.getMinutes())
+    var sunTimes = SunCalc.getTimes(now, 51.5, -0.1);
+    clock.drawLineForTime(sunTimes.sunrise.getHours(), sunTimes.sunrise.getMinutes())
+    clock.drawLineForTime(sunTimes.sunset.getHours(), sunTimes.sunset.getMinutes())
     window.clock  = clock
   }
 };
