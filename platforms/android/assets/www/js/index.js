@@ -107,24 +107,49 @@ var app = {
   onDeviceReady: function() {
     app.receivedEvent('deviceready');
   },
+
+  setupClock: function(){
+    this.clock.drawOutline();
+    this.clock.drawLineForTime(new Date());
+  },
+
+  noLocation: function(error){
+    console.log('cannot get location', error);
+    if(localStorage.getItem('latitude')){
+      this.drawSunLines(localStorage.getItem('latitude'), localStorage.getItem('longitude'))
+    }
+    else{
+      alert('Cannot Find Location, enable location on device or enter manually');
+    }
+  },
+
+  gotLocation: function(location){
+    var latitude = location.coords.latitude
+    var longitude = location.coords.longitude
+    window.localStorage.setItem('latitude', latitude);
+    window.localStorage.setItem('longitude', longitude);
+    this.drawSunLines(latitude, longitude);
+  },
+
+  drawSunLines: function(latitude, longitude){
+    var sunTimes = SunCalc.getTimes(new Date(), latitude, longitude);
+    this.clock.drawLineForTime(sunTimes.sunrise)
+    this.clock.drawLineForTime(sunTimes.sunset)
+    this.clock.drawSweep(sunTimes.sunrise, sunTimes.sunset)
+  },
   // Update DOM on a Received Event
 
   receivedEvent: function(id) {
     console.log('Received Event: ' + id);
-    var clock = clockFactory({
+    this.clock = clockFactory({
       center: { x:100, y:75 },
       canvas: document.getElementById("canvas") ,
       radius:50
     });
-    clock.drawOutline();
-    var now = new Date()
-    clock.drawLineForTime(now)
-    //doing for london just now get the proper coordinates
-    var sunTimes = SunCalc.getTimes(now, 51.5, -0.1);
-    clock.drawLineForTime(sunTimes.sunrise)
-    clock.drawLineForTime(sunTimes.sunset)
-    clock.drawSweep(sunTimes.sunrise, sunTimes.sunset)
-    window.clock  = clock
+    this.setupClock();
+    console.log('nav', navigator)
+    navigator.geolocation.getCurrentPosition( this.gotLocation.bind(this), this.noLocation.bind(this), 
+      { timeout: 30000, enableHighAccuracy: true } );    
   }
 };
 

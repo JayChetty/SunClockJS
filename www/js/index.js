@@ -113,9 +113,26 @@ var app = {
     this.clock.drawLineForTime(new Date());
   },
 
-  drawSunLines: function(location){
-    console.log('location', location)
-    var sunTimes = SunCalc.getTimes(new Date(), location.coords.latitude, location.coords.longitude);
+  noLocation: function(error){
+    console.log('cannot get location', error);
+    if(localStorage.getItem('latitude')){
+      this.drawSunLines(localStorage.getItem('latitude'), localStorage.getItem('longitude'))
+    }
+    else{
+      alert('Cannot Find Location, enable location on device or enter manually');
+    }
+  },
+
+  gotLocation: function(location){
+    var latitude = location.coords.latitude
+    var longitude = location.coords.longitude
+    window.localStorage.setItem('latitude', latitude);
+    window.localStorage.setItem('longitude', longitude);
+    this.drawSunLines(latitude, longitude);
+  },
+
+  drawSunLines: function(latitude, longitude){
+    var sunTimes = SunCalc.getTimes(new Date(), latitude, longitude);
     this.clock.drawLineForTime(sunTimes.sunrise)
     this.clock.drawLineForTime(sunTimes.sunset)
     this.clock.drawSweep(sunTimes.sunrise, sunTimes.sunset)
@@ -130,7 +147,9 @@ var app = {
       radius:50
     });
     this.setupClock();
-    navigator.geolocation.getCurrentPosition( this.drawSunLines.bind(this) );    
+    console.log('nav', navigator)
+    navigator.geolocation.getCurrentPosition( this.gotLocation.bind(this), this.noLocation.bind(this), 
+      { timeout: 30000, enableHighAccuracy: true } );    
   }
 };
 
