@@ -107,31 +107,30 @@ var app = {
   onDeviceReady: function() {
     app.receivedEvent('deviceready');
   },
+
+  setupClock: function(){
+    this.clock.drawOutline();
+    this.clock.drawLineForTime(new Date());
+  },
+
+  drawSunLines: function(location){
+    console.log('location', location)
+    var sunTimes = SunCalc.getTimes(new Date(), location.coords.latitude, location.coords.longitude);
+    this.clock.drawLineForTime(sunTimes.sunrise)
+    this.clock.drawLineForTime(sunTimes.sunset)
+    this.clock.drawSweep(sunTimes.sunrise, sunTimes.sunset)
+  },
   // Update DOM on a Received Event
 
   receivedEvent: function(id) {
-    var parentElement = document.getElementById(id);
-    var listeningElement = parentElement.querySelector('.listening');
-    var receivedElement = parentElement.querySelector('.received');
-
-    listeningElement.setAttribute('style', 'display:none;');
-    receivedElement.setAttribute('style', 'display:block;');
-
     console.log('Received Event: ' + id);
-    var clock = clockFactory({
+    this.clock = clockFactory({
       center: { x:100, y:75 },
       canvas: document.getElementById("canvas") ,
       radius:50
     });
-    clock.drawOutline();
-    var now = new Date()
-    clock.drawLineForTime(now)
-    //doing for london just now get the proper coordinates
-    var sunTimes = SunCalc.getTimes(now, 51.5, -0.1);
-    clock.drawLineForTime(sunTimes.sunrise)
-    clock.drawLineForTime(sunTimes.sunset)
-    clock.drawSweep(sunTimes.sunrise, sunTimes.sunset)
-    window.clock  = clock
+    this.setupClock();
+    navigator.geolocation.getCurrentPosition( this.drawSunLines.bind(this) );    
   }
 };
 
